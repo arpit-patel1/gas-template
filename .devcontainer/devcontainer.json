@@ -1,0 +1,15 @@
+{
+  "name": "gas-webapp-boilerplate",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "vitest.explorer",
+        "ms-playwright.playwright",
+        "github.vscode-github-actions"
+      ]
+    }
+  },
+  "postCreateCommand": "npm ci && npx playwright install --with-deps && npx husky"
+}

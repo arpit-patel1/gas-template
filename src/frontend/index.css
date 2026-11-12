@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fade transitions for the sheet list (from enuchi/React-Google-Apps-Script, MIT) */
+.sheetNames-enter { opacity: 0; }
+.sheetNames-enter-active { opacity: 1; transition: opacity 300ms ease-in; }
+.sheetNames-exit { opacity: 1; }
+.sheetNames-exit-active { opacity: 0; transition: opacity 300ms ease-in; }
