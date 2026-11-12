@@ -15,7 +15,7 @@ const App = () => {
         <AppShell page={page} onNavigate={setPage}>
           {page === 'home' ? <HomePage onNavigate={setPage} /> : <NotesPage />}
         </AppShell>
-        <Toaster richColors position="bottom-right" />
+        <Toaster richColors position="top-center" />
       </HelloProvider>
     </TooltipProvider>
   )

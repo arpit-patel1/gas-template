@@ -31,7 +31,7 @@ Deploying needs a Google login (`npx clasp login`), which cannot be done in a sa
 ```
 src/frontend/          React app (runs in the browser, inside GAS's iframes)
   components/ui/       shadcn components (new-york style, neutral)
-  components/          app-shell.tsx (header + sidebar), theme-toggle.tsx
+  components/          app-shell.tsx (header + footer page tabs), theme-toggle.tsx
   pages/               home.tsx, notes.tsx
   lib/utils.ts         cn() helper
   utils/serverFunctions.ts   typed gas-client wrapper + in-memory dev mock
@@ -77,7 +77,8 @@ More shadcn components: `npx shadcn@latest add <name>` (`components.json` is pre
 ## Conventions and gotchas
 
 - **No router.** GAS cannot serve deep URLs; pages are React state. If routing is ever needed, use `HashRouter`.
-- **No external assets.** Everything must inline into one HTML file. Don't add runtime `fetch` of local files, separate CSS/JS, or image imports that Vite won't inline.
+- **No external assets.** Everything must inline into one HTML file. Don't add runtime `fetch` of local files, separate CSS/JS, or image imports that Vite won't inline. Only exception: Google Fonts, loaded by `<link>` in `index.html` (Bricolage Grotesque headings, IBM Plex Sans body) with system-font fallbacks.
+- **Branding.** "Sheet-native" look: name/tagline in `src/frontend/brand.ts`, mark in `components/monogram.tsx`, colors/radius/fonts as tokens in `index.css`, fonts in `index.html`. Re-skin by editing those. Tables use `components/grid-styles.ts` to look like a spreadsheet; pages are tabs in the footer of `app-shell.tsx`; saved rows get the `row-flash` highlight.
 - **Frontend imports backend types only** (`import type`). Never import backend runtime code into the frontend: it uses GAS globals that don't exist in the browser.
 - **Server functions return plain JSON-serializable data.** `google.script.run` can't return `Date`, `undefined` in objects, or class instances. Use numbers/strings.
 - **`localStorage` may throw** inside the GAS iframe; always wrap in try/catch (see `theme-toggle.tsx`).

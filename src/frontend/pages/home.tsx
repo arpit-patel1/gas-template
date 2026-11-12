@@ -1,55 +1,42 @@
 import { useEffect, useState } from 'react'
-import {
-  ArrowRightIcon,
-  ClockIcon,
-  DatabaseIcon,
-  NotebookPenIcon,
-  RefreshCwIcon,
-  UserIcon,
-  type LucideIcon,
-} from 'lucide-react'
+import { ArrowRightIcon, RefreshCwIcon } from 'lucide-react'
 import type { Note } from '../../backend/serverFunctions'
+import { brand } from '@/brand'
 import type { PageId } from '@/components/app-shell'
+import { grid } from '@/components/grid-styles'
 import { useHello } from '@/lib/use-hello'
 import { serverFunctions } from '@/utils/serverFunctions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
-function Stat({
-  icon: Icon,
+// One cell of the "formula bar" strip under the title.
+function BarCell({
   label,
   value,
   loading,
 }: {
-  icon: LucideIcon
   label: string
   value?: string
   loading: boolean
 }) {
   return (
-    <Card>
-      <CardContent className="flex items-center gap-4">
-        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-          <Icon className="size-5" />
-        </span>
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">{label}</p>
-          {loading ? (
-            <Skeleton className="mt-1 h-5 w-24" />
-          ) : (
-            <p className="truncate font-medium">{value || '—'}</p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="min-w-0 border-b px-3 py-2 last:border-b-0 sm:border-r sm:border-b-0 sm:last:border-r-0">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      {loading ? (
+        <Skeleton className="mt-1 h-5 w-24" />
+      ) : (
+        <p className="truncate text-sm font-medium">{value || '—'}</p>
+      )}
+    </div>
   )
 }
 
@@ -61,7 +48,7 @@ export function HomePage({ onNavigate }: { onNavigate: (p: PageId) => void }) {
   useEffect(() => {
     serverFunctions
       .listNotes()
-      .then((n) => setRecent(n.slice(0, 5)))
+      .then((n) => setRecent(n.slice(0, 6)))
       .catch(() => setRecent([]))
   }, [])
 
@@ -69,13 +56,8 @@ export function HomePage({ onNavigate }: { onNavigate: (p: PageId) => void }) {
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {hello?.message ?? 'Hello…'}
-          </h1>
-          <p className="text-muted-foreground">
-            React + shadcn/ui + Tailwind on Apps Script, with Google Sheets as
-            the database.
-          </p>
+          <h1 className="text-5xl font-bold">{hello?.message ?? 'Hello…'}</h1>
+          <p className="mt-2 text-muted-foreground">{brand.tagline}</p>
         </div>
         <Button
           variant="outline"
@@ -83,7 +65,7 @@ export function HomePage({ onNavigate }: { onNavigate: (p: PageId) => void }) {
           disabled={loading}
         >
           <RefreshCwIcon className={loading ? 'animate-spin' : ''} />
-          Call server again
+          Refresh
         </Button>
       </div>
 
@@ -94,27 +76,19 @@ export function HomePage({ onNavigate }: { onNavigate: (p: PageId) => void }) {
         </Alert>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Stat
-          icon={UserIcon}
-          label="User"
-          value={hello?.email}
-          loading={loading}
-        />
-        <Stat
-          icon={DatabaseIcon}
+      <div className="grid rounded-md border bg-card sm:grid-cols-4">
+        <BarCell label="Signed in as" value={hello?.email} loading={loading} />
+        <BarCell
           label="Spreadsheet"
           value={hello?.spreadsheet}
           loading={loading}
         />
-        <Stat
-          icon={NotebookPenIcon}
+        <BarCell
           label="Notes"
           value={hello ? String(hello.noteCount) : undefined}
           loading={loading}
         />
-        <Stat
-          icon={ClockIcon}
+        <BarCell
           label="Server time"
           value={
             hello ? new Date(hello.serverTime).toLocaleTimeString() : undefined
@@ -123,44 +97,76 @@ export function HomePage({ onNavigate }: { onNavigate: (p: PageId) => void }) {
         />
       </div>
 
-      <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <div className="space-y-1.5">
-            <CardTitle>Recent notes</CardTitle>
-            <CardDescription>Latest five from your sheet.</CardDescription>
-          </div>
+      <section className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Latest rows in Notes</h2>
           <Button variant="ghost" size="sm" onClick={() => onNavigate('notes')}>
-            View all <ArrowRightIcon />
+            Open Notes <ArrowRightIcon />
           </Button>
-        </CardHeader>
-        <CardContent>
-          {recent === null ? (
-            <div className="space-y-3">
-              <Skeleton className="h-5 w-full" />
-              <Skeleton className="h-5 w-4/5" />
-              <Skeleton className="h-5 w-3/5" />
-            </div>
-          ) : recent.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              No notes yet.
-            </p>
-          ) : (
-            <ul className="divide-y">
-              {recent.map((n) => (
-                <li
-                  key={n.id}
-                  className="flex items-center justify-between gap-4 py-2 text-sm"
-                >
-                  <span className="truncate">{n.text}</span>
-                  <span className="shrink-0 text-xs text-muted-foreground">
+        </div>
+        <div className="overflow-hidden rounded-md border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className={grid.letter} />
+                <TableHead className={grid.letter}>A</TableHead>
+                <TableHead className={grid.letter}>B</TableHead>
+                <TableHead className={`${grid.letter} hidden sm:table-cell`}>
+                  C
+                </TableHead>
+              </TableRow>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className={grid.gutter}>1</TableHead>
+                <TableHead className={grid.head}>Note</TableHead>
+                <TableHead className={grid.head}>Author</TableHead>
+                <TableHead className={`${grid.head} hidden sm:table-cell`}>
+                  Created
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recent === null &&
+                Array.from({ length: 3 }, (_, i) => (
+                  <TableRow key={i}>
+                    <TableCell className={grid.gutter}>{i + 2}</TableCell>
+                    <TableCell className={grid.cell} colSpan={3}>
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              {recent?.length === 0 && (
+                <TableRow>
+                  <TableCell className={grid.gutter}>2</TableCell>
+                  <TableCell
+                    className={`${grid.cell} text-muted-foreground`}
+                    colSpan={3}
+                  >
+                    Empty. Add a note and it shows up here.
+                  </TableCell>
+                </TableRow>
+              )}
+              {recent?.map((n, i) => (
+                <TableRow key={n.id}>
+                  <TableCell className={grid.gutter}>{i + 2}</TableCell>
+                  <TableCell className={`${grid.cell} w-full`}>
+                    {n.text}
+                  </TableCell>
+                  <TableCell
+                    className={`${grid.cell} whitespace-nowrap text-muted-foreground`}
+                  >
+                    {n.author || '—'}
+                  </TableCell>
+                  <TableCell
+                    className={`${grid.cell} hidden whitespace-nowrap text-muted-foreground sm:table-cell`}
+                  >
                     {new Date(n.createdAt).toLocaleDateString()}
-                  </span>
-                </li>
+                  </TableCell>
+                </TableRow>
               ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+            </TableBody>
+          </Table>
+        </div>
+      </section>
     </div>
   )
 }
