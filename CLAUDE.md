@@ -72,7 +72,7 @@ Store timestamps as **epoch-ms numbers**, not date strings: Sheets auto-converts
 5. Add a Vitest spec next to backend code. Stub GAS globals with `vi.stubGlobal` (see `db.spec.ts`).
 6. New OAuth scope needed? Add it to `gas/appsscript.json` (see `docs/scopes.md`).
 
-More shadcn components: `npx shadcn@latest add <name>` (`components.json` is preconfigured, alias `@` = `src/frontend`).
+More shadcn components: `npx shadcn@latest add <name>` (`components.json` is preconfigured, alias `@` = `src/frontend`). The CLI may write to a literal `./@/` dir and import `cn` from a bogus `"cn"` package: move files into `src/frontend/components/ui/`, fix imports to `@/lib/utils`, `npm uninstall cn`. `sonner.tsx` reads theme from the `<html>` class (no next-themes).
 
 ## Conventions and gotchas
 
