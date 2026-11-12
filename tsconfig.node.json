@@ -2,12 +2,21 @@
   "compilerOptions": {
     "composite": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2023"],
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "types": ["node"],
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "noEmit": true
   },
-  "include": ["vite.config.backend.ts", "vite.config.frontend.ts"]
+  "include": [
+    "vite.config.ts",
+    "vite.config.backend.ts",
+    "vite.config.frontend.ts",
+    "playwright.config.ts",
+    "e2e"
+  ]
 }

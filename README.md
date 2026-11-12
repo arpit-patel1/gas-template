@@ -1,61 +1,81 @@
-# GAS React Template
+# GAS Portal Template
 
-Google Apps Script **web app** with a React + TypeScript + Tailwind frontend, built with Vite and deployed with clasp.
+A Google Apps Script **web portal** with a React + shadcn/ui + Tailwind frontend and **Google Sheets as the database**. Hello World page, a Sheets-backed Notes CRUD page, dark mode. Built with Vite, deployed with clasp.
 
-Merged from three MIT-licensed templates (see [NOTICE.md](NOTICE.md)):
+## Stack (all latest at time of writing)
 
-| Source | What it contributes |
-| --- | --- |
-| [Mikoshiba-Kyu/gas-webapp-boilerplate](https://github.com/Mikoshiba-Kyu/gas-webapp-boilerplate) | Project base: React + TS + Vite, split frontend/backend builds, Vitest, Playwright, Husky, DevContainer |
-| [enuchi/React-Google-Apps-Script](https://github.com/enuchi/React-Google-Apps-Script) | Tailwind sheet-editor React components, `gas-client` pattern, sheets server code |
-| [labnol/apps-script-starter](https://github.com/labnol/apps-script-starter) | `doGet` / manifest conventions, OAuth scopes reference (`docs/scopes.md`) |
+React 19 · Vite 8 · Tailwind CSS 4 · shadcn/ui (new-york, neutral) · TypeScript 6 · ESLint 10 · Vitest 5 · Playwright · clasp 3 · gas-client
 
-## Layout
-
-```
-src/frontend/   React app (components/, utils/serverFunctions.ts)
-src/backend/    Apps Script server code (main.ts exposes functions on `global`)
-gas/            appsscript.json + build output (gas/dist/index.html, main.js)
-e2e/            Playwright tests
-docs/scopes.md  OAuth scope reference
-```
+> TypeScript is pinned to 6.x because `typescript-eslint` does not support TS 7 yet.
 
 ## Quick start
 
 ```bash
 npm install
-npm run dev            # local UI with a mocked server (no Google account needed)
-
-npm run login          # clasp login
-npx clasp create --type sheets --title "My App" --rootDir gas   # bound script; writes .clasp.json
-npm run deploy         # build + clasp push
+npm run dev        # full UI with an in-memory mock backend, no Google account needed
 ```
 
-Then in the Apps Script editor: **Deploy > New deployment > Web app**.
+Deploy:
 
-`.clasp.json.example` shows the expected shape. `.clasp.json` is gitignored.
+```bash
+npm run login                                                    # clasp login
+npx clasp create --type sheets --title "GAS Portal" --rootDir gas  # script bound to a new Sheet
+npm run deploy                                                   # build + clasp push
+```
 
-## Adding a server function
+Then in the Apps Script editor: **Deploy > New deployment > Web app**. Open the URL, add a note, and check the new `Notes` tab in the Sheet.
 
-1. Write it in `src/backend/serverFunctions/`.
-2. Export it from `serverFunctions/index.ts`.
-3. Expose it in `src/backend/main.ts`: `global.myFn = myFn`.
-4. Call it from React: `serverFunctions.myFn(...)` (add a mock in `utils/serverFunctions.ts` for `npm run dev`).
+Standalone script (not bound to a Sheet)? Set Script Property `SPREADSHEET_ID` to your spreadsheet's ID.
+
+## Layout
+
+```
+src/frontend/
+  components/ui/     shadcn components (button, card, input, badge, table, dialog)
+  components/        app shell (header + sidebar), theme toggle
+  pages/             home.tsx (Hello World), notes.tsx (Sheets CRUD)
+  utils/serverFunctions.ts   typed gas-client wrapper + dev mock
+src/backend/
+  main.ts            doGet + functions exposed on `global`
+  serverFunctions/   db.ts (Sheets "table" helper), notes.ts, hello.ts
+gas/appsscript.json  manifest (scopes, web app access)
+```
+
+## How the Sheets backend works
+
+`createTable<T>(tabName, columns)` in `db.ts` turns one tab into a table: row 1 is the header, each row is an object with a UUID `id`. You get `list`, `add`, `update`, `remove`. Writes are wrapped in a script lock. The tab is created on first use.
+
+```ts
+const tasks = createTable<Task>('Tasks', ['id', 'title', 'done'])
+```
+
+## Adding a feature
+
+1. Add a table + functions in `src/backend/serverFunctions/` and export from `index.ts`.
+2. Expose them in `src/backend/main.ts` (`global.myFn = myFn`).
+3. Add a mock in `utils/serverFunctions.ts` so `npm run dev` keeps working.
+4. Build a page in `src/frontend/pages/` and add it to `app-shell.tsx` and `App.tsx`.
+
+Add more shadcn components with `npx shadcn@latest add <component>` (`components.json` is preconfigured).
 
 ## Scripts
 
-| Script | Purpose |
-| --- | --- |
-| `npm run dev` | Vite dev server, mocked backend |
-| `npm run build` | Build frontend (single inlined HTML) + backend into `gas/dist` |
-| `npm run deploy` | Build, then `clasp push` |
-| `npm run typecheck` / `lint` | Type check / ESLint |
-| `npm run test:unittest` | Vitest (mock Apps Script services with `vi.stubGlobal`) |
-| `npm run test:e2e` | Playwright against a deployed URL (`PLAYWRIGHT_BASE_URL`) |
+| Script                                  | Purpose                                                   |
+| --------------------------------------- | --------------------------------------------------------- |
+| `npm run dev`                           | Vite dev server with mocked backend                       |
+| `npm run build`                         | Single-file frontend + backend bundle into `gas/dist`     |
+| `npm run deploy`                        | Build, then `clasp push`                                  |
+| `npm run typecheck` / `lint` / `format` | TS check / ESLint / Prettier                              |
+| `npm run test:unittest`                 | Vitest (Apps Script services are stubbed in tests)        |
+| `npm run test:e2e`                      | Playwright against a deployed URL (`PLAYWRIGHT_BASE_URL`) |
 
 ## Notes
 
-- Sheet functions use `SpreadsheetApp.getActive()`, which needs a **spreadsheet-bound** script. For a standalone script, switch to `SpreadsheetApp.openById(...)`.
-- The default manifest uses `executeAs: USER_ACCESSING`, `access: MYSELF`. Change in `gas/appsscript.json` before sharing.
-- `.npmrc` sets `legacy-peer-deps` because `rollup-plugin-google-apps-script` declares an old Vite peer range.
-- Apps Script can't use `BrowserRouter`; use state or `HashRouter`.
+- Manifest defaults: `executeAs: USER_ACCESSING`, `access: MYSELF`. Change `gas/appsscript.json` before sharing. Scopes are `spreadsheets` and `userinfo.email`; see `docs/scopes.md` for others.
+- No router: Apps Script can't serve deep URLs, so pages are React state.
+- `overrides` in `package.json` lets `rollup-plugin-google-apps-script` (old Vite peer range) work with Vite 8.
+- `npm audit` reports a moderate `uuid` advisory via `gas-client` (affects v3/v5/v6 with a caller-provided buffer) and issues in dev-only `@google/clasp` dependencies.
+
+## Credits
+
+Merged from MIT-licensed templates: see [NOTICE.md](NOTICE.md).

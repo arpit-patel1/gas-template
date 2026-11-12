@@ -1,25 +1,25 @@
 import {
-  sampleFunction,
-  getSheetsData,
-  addSheet,
-  deleteSheet,
-  setActiveSheet,
+  getHello,
+  listNotes,
+  addNote,
+  updateNote,
+  deleteNote,
 } from './serverFunctions'
 
 declare const global: {
   [x: string]: unknown
 }
 
-// Required to serve the web app. Pattern from labnol/apps-script-starter (MIT).
+// Serves the web app (the inlined React build).
 global.doGet = (): GoogleAppsScript.HTML.HtmlOutput =>
   HtmlService.createHtmlOutputFromFile('dist/index.html')
-    .setTitle('GAS React Template')
+    .setTitle('GAS Portal')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT)
 
 // Every function the client calls via gas-client must be exposed on `global`.
-global.sampleFunction = sampleFunction
-global.getSheetsData = getSheetsData
-global.addSheet = addSheet
-global.deleteSheet = deleteSheet
-global.setActiveSheet = setActiveSheet
+global.getHello = getHello
+global.listNotes = listNotes
+global.addNote = addNote
+global.updateNote = updateNote
+global.deleteNote = deleteNote

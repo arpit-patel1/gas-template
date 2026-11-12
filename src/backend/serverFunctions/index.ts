@@ -1,4 +1,4 @@
-export { getSheetsData, addSheet, deleteSheet, setActiveSheet } from './sheets'
-export type { SheetInfo } from './sheets'
-
-export const sampleFunction = (num: number): number => num + 1
+export { getHello } from './hello'
+export { listNotes, addNote, updateNote, deleteNote } from './notes'
+export type { Hello } from './hello'
+export type { Note } from './notes'

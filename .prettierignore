@@ -1,0 +1,4 @@
+node_modules
+gas/dist
+package-lock.json
+docs/scopes.md
